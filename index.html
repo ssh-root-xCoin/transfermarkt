@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer Market Draft Game</title>
+    <style>
+        /* DESIGN SYSTEM & VARIABLES */
+        :root {
+            /* Colors */
+            --bg-base: #0B0F19;
+            --bg-surface: #151C2C;
+            --bg-surface-elevated: #1F293D;
+            --bg-surface-hover: #2A3752;
+            --primary: #001A57; 
+            --accent: #E32221;  
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --border: #334155;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+
+            /* Typography */
+            --font-sans: system-ui, -apple-system, sans-serif;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.25rem;
+            --text-xl: 1.5rem;
+            --text-2xl: 2rem;
+            
+            /* Spacing & Layout */
+            --space-2: 0.5rem;
+            --space-4: 1rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            
+            /* Animation */
+            --transition-standard: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* RESET & BASE STYLES */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            padding: var(--space-6);
+            background-color: var(--primary);
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        header img {
+            height: 60px;
+            object-fit: contain;
+        }
+
+        main {
+            width: 100%;
+            max-width: 900px;
+            padding: var(--space-8) var(--space-4);
+            flex-grow: 1;
+        }
+
+        /* COMPONENTS */
+        .screen {
+            display: none;
+            animation: fadeIn var(--transition-standard);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            margin-bottom: var(--space-6);
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            margin-bottom: var(--space-4);
+        }
+
+        h1 { font-size: var(--text-2xl); }
+        h2 { font-size: var(--text-xl); }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: var(--space-4);
+        }
+
+        /* FORMS & INPUTS */
+        .form-group {
+            margin-bottom: var(--space-4);
+        }
+
+        label {
+            display: block;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            color: var(--text-muted);
+        }
+
+        input, select {
+            width: 100%;
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: var(--text-base);
+            font-family: inherit;
+            transition: border-color var(--transition-standard);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: var(--text-base);
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: transform var(--transition-standard), background var(--transition-standard);
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: #002277;
+        }
+
+        button.danger {
+            background: var(--accent);
+        }
+
+        button.danger:hover {
+            background: #B91C1C;
+        }
+
+        button.outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        button.outline:hover {
+            background: var(--bg-surface-elevated);
+            color: var(--text-main);
+        }
+
+        /* GAME SPECIFIC UI */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .player-select-card {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            text-align: center;
+            cursor: pointer;
+            transition: transform var(--transition-standard), border-color var(--transition-standard);
+        }
+
+        .player-select-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            background: var(--bg-surface-hover);
+        }
+
+        .player-select-card h3 {
+            margin-bottom: var(--space-2);
+            font-size: var(--text-base);
+        }
+
+        .player-select-card .stats {
+            display: flex;
+            justify-content: center;
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--warning);
+            margin-bottom: var(--space-6);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .timer-danger {
+            color: var(--danger);
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: pulse 1s infinite;
+        }
+
+        .player-spotlight {
+            text-align: center;
+            padding: var(--space-6);
+            background: linear-gradient(145deg, var(--bg-surface-elevated), var(--bg-surface));
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-6);
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .player-spotlight h2 { margin-bottom: var(--space-2); font-size: var(--text-2xl); }
+        .player-price { font-size: var(--text-xl); font-weight: 700; color: var(--success); }
+        
+        .list-group {
+            list-style: none;
+        }
+
+        .list-group li {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+
+        .list-group li:last-child {
+            border-bottom: none;
+        }
+
+        .balance-badge {
+            background: var(--bg-surface-elevated);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: var(--text-sm);
+        }
+
+        .balance-negative {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="transfer markt.png" alt="Transfer Markt">
+    </header>
+
+    <main>
+        <div id="screen-setup" class="screen active">
+            <div class="card">
+                <h2>Game Setup</h2>
+                <p>Enter the number of players (Max 10). Everyone starts with €150M.</p>
+                <div class="form-group">
+                    <label for="player-count">Number of Players</label>
+                    <input type="number" id="player-count" min="2" max="10" value="2">
+                </div>
+                <button onclick="goToNameInput()">Next Phase</button>
+            </div>
+        </div>
+
+        <div id="screen-names" class="screen">
+            <div class="card">
+                <h2>Manager Registration</h2>
+                <p>Enter the names for all managers participating.</p>
+                <div id="names-container"></div>
+                <button onclick="initializeGame()" style="margin-top: var(--space-4);">Generate Draft Pools</button>
+            </div>
+        </div>
+
+        <div id="screen-zone-selection" class="screen">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                <div>
+                    <h2 style="margin-bottom: 0;">Draft Board: <span id="current-zone-name" style="color: var(--accent);"></span></h2>
+                    <p style="margin-bottom: 0;">Select a player below to open their auction. (OVR ratings are hidden!)</p>
+                </div>
+                <div id="buyers-remaining" style="color: var(--warning); font-weight: 600;"></div>
+            </div>
+            
+            <div id="player-grid" class="grid-layout">
+                </div>
+        </div>
+
+        <div id="screen-auction" class="screen">
+            <div class="timer-display" id="timer">30</div>
+            
+            <div class="player-spotlight">
+                <h2 id="auction-player-name">Player Name</h2>
+                <div class="player-price">Base Value: €<span id="auction-player-price"></span>M</div>
+                </div>
+
+            <div class="card">
+                <h3>Place Winning Bid</h3>
+                <div class="form-group">
+                    <label for="buyer-select">Purchased By:</label>
+                    <select id="buyer-select">
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="purchase-price">Final Price (€M):</label>
+                    <input type="number" id="purchase-price" min="1">
+                </div>
+                <button class="danger" onclick="processSale()">Confirm Transfer</button>
+                <button class="outline" onclick="skipPlayer()" style="margin-top: var(--space-4);">Pass (Unsold / Return to Board)</button>
+            </div>
+        </div>
+
+        <div id="screen-balances" class="screen">
+            <div class="card">
+                <h2>Current Balances</h2>
+                <p>Status after the recent draft phase.</p>
+                <ul id="balance-list" class="list-group"></ul>
+                <button id="next-phase-btn" onclick="nextPhase()" style="margin-top: var(--space-6);">Next Phase</button>
+            </div>
+        </div>
+
+        <div id="screen-leaderboard" class="screen">
+            <div class="card">
+                <h2>Final Standings</h2>
+                <div class="table-responsive">
+                    <table id="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Manager</th>
+                                <th>Team Drafted (OVR Revealed)</th>
+                                <th>Budget Diff</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button onclick="location.reload()" style="margin-top: var(--space-6);">Play Again</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- EXPANDED DATABASE (115+ Players) ---
+        // All prices artificially kept <= 45M to allow the budget mechanics to work as requested.
+        const playerDB = {
+            GK: [
+                { id: 'g1', name: 'Alisson Becker', rating: 89, price: 42 },
+                { id: 'g2', name: 'Thibaut Courtois', rating: 90, price: 45 },
+                { id: 'g3', name: 'Marc-André ter Stegen', rating: 89, price: 38 },
+                { id: 'g4', name: 'Ederson', rating: 88, price: 35 },
+                { id: 'g5', name: 'Jan Oblak', rating: 88, price: 30 },
+                { id: 'g6', name: 'G. Donnarumma', rating: 87, price: 35 },
+                { id: 'g7', name: 'Emiliano Martínez', rating: 86, price: 28 },
+                { id: 'g8', name: 'Manuel Neuer', rating: 87, price: 20 },
+                { id: 'g9', name: 'David Raya', rating: 85, price: 25 },
+                { id: 'g10', name: 'Guglielmo Vicario', rating: 84, price: 20 },
+                { id: 'g11', name: 'Jordan Pickford', rating: 83, price: 18 },
+                { id: 'g12', name: 'Nick Pope', rating: 83, price: 15 },
+                { id: 'g13', name: 'Mike Maignan', rating: 87, price: 32 },
+                { id: 'g14', name: 'Yann Sommer', rating: 85, price: 18 },
+                { id: 'g15', name: 'Wojciech Szczesny', rating: 86, price: 20 },
+                { id: 'g16', name: 'Gregor Kobel', rating: 86, price: 28 },
+                { id: 'g17', name: 'Yassine Bounou', rating: 85, price: 18 },
+                { id: 'g18', name: 'Diogo Costa', rating: 84, price: 25 },
+                { id: 'g19', name: 'Unai Simón', rating: 84, price: 22 },
+                { id: 'g20', name: 'Aaron Ramsdale', rating: 83, price: 18 },
+                { id: 'g21', name: 'Bernd Leno', rating: 82, price: 12 },
+                { id: 'g22', name: 'Alphonse Areola', rating: 82, price: 10 },
+                { id: 'g23', name: 'Anatoliy Trubin', rating: 81, price: 15 },
+                { id: 'g24', name: 'Andriy Lunin', rating: 82, price: 16 },
+                { id: 'g25', name: 'Stefan Ortega', rating: 81, price: 10 }
+            ],
+            DEF: [
+                { id: 'd1', name: 'Virgil van Dijk', rating: 90, price: 45 },
+                { id: 'd2', name: 'Rúben Dias', rating: 89, price: 45 },
+                { id: 'd3', name: 'William Saliba', rating: 88, price: 40 },
+                { id: 'd4', name: 'Antonio Rüdiger', rating: 88, price: 38 },
+                { id: 'd5', name: 'Ronald Araujo', rating: 87, price: 35 },
+                { id: 'd6', name: 'Trent Alexander-Arnold', rating: 87, price: 40 },
+                { id: 'd7', name: 'Marquinhos', rating: 87, price: 35 },
+                { id: 'd8', name: 'Alessandro Bastoni', rating: 86, price: 35 },
+                { id: 'd9', name: 'Gabriel Magalhães', rating: 86, price: 35 },
+                { id: 'd10', name: 'John Stones', rating: 86, price: 35 },
+                { id: 'd11', name: 'Andrew Robertson', rating: 86, price: 30 },
+                { id: 'd12', name: 'Kyle Walker', rating: 85, price: 20 },
+                { id: 'd13', name: 'Achraf Hakimi', rating: 86, price: 38 },
+                { id: 'd14', name: 'Alphonso Davies', rating: 85, price: 35 },
+                { id: 'd15', name: 'Theo Hernández', rating: 86, price: 36 },
+                { id: 'd16', name: 'Jules Koundé', rating: 86, price: 32 },
+                { id: 'd17', name: 'Éder Militão', rating: 86, price: 35 },
+                { id: 'd18', name: 'Kim Min-jae', rating: 85, price: 30 },
+                { id: 'd19', name: 'Joško Gvardiol', rating: 85, price: 35 },
+                { id: 'd20', name: 'Destiny Udogie', rating: 83, price: 22 },
+                { id: 'd21', name: 'Pedro Porro', rating: 83, price: 22 },
+                { id: 'd22', name: 'Ben White', rating: 84, price: 25 },
+                { id: 'd23', name: 'Fabian Schär', rating: 83, price: 15 },
+                { id: 'd24', name: 'Sven Botman', rating: 84, price: 25 },
+                { id: 'd25', name: 'Gleison Bremer', rating: 85, price: 28 },
+                { id: 'd26', name: 'Federico Dimarco', rating: 85, price: 28 },
+                { id: 'd27', name: 'Jeremie Frimpong', rating: 84, price: 28 },
+                { id: 'd28', name: 'Álex Grimaldo', rating: 85, price: 30 }
+            ],
+            MID: [
+                { id: 'm1', name: 'Kevin De Bruyne', rating: 91, price: 45 },
+                { id: 'm2', name: 'Rodri', rating: 91, price: 45 },
+                { id: 'm3', name: 'Jude Bellingham', rating: 90, price: 45 },
+                { id: 'm4', name: 'Martin Ødegaard', rating: 88, price: 42 },
+                { id: 'm5', name: 'Declan Rice', rating: 88, price: 42 },
+                { id: 'm6', name: 'Jamal Musiala', rating: 88, price: 45 },
+                { id: 'm7', name: 'Florian Wirtz', rating: 88, price: 45 },
+                { id: 'm8', name: 'Federico Valverde', rating: 88, price: 40 },
+                { id: 'm9', name: 'Bruno Fernandes', rating: 88, price: 40 },
+                { id: 'm10', name: 'Pedri', rating: 87, price: 40 },
+                { id: 'm11', name: 'Nicolò Barella', rating: 87, price: 38 },
+                { id: 'm12', name: 'Alexis Mac Allister', rating: 86, price: 35 },
+                { id: 'm13', name: 'Luka Modrić', rating: 86, price: 15 },
+                { id: 'm14', name: 'Aurélien Tchouaméni', rating: 85, price: 35 },
+                { id: 'm15', name: 'Eduardo Camavinga', rating: 84, price: 32 },
+                { id: 'm16', name: 'Bernardo Silva', rating: 88, price: 38 },
+                { id: 'm17', name: 'Frenkie de Jong', rating: 87, price: 35 },
+                { id: 'm18', name: 'Bruno Guimarães', rating: 85, price: 35 },
+                { id: 'm19', name: 'Sandro Tonali', rating: 84, price: 30 },
+                { id: 'm20', name: 'Hakan Çalhanoğlu', rating: 86, price: 28 },
+                { id: 'm21', name: 'Granit Xhaka', rating: 85, price: 20 },
+                { id: 'm22', name: 'João Palhinha', rating: 84, price: 25 },
+                { id: 'm23', name: 'Enzo Fernández', rating: 84, price: 35 },
+                { id: 'm24', name: 'Moisés Caicedo', rating: 83, price: 32 },
+                { id: 'm25', name: 'Dominik Szoboszlai', rating: 84, price: 30 },
+                { id: 'm26', name: 'James Maddison', rating: 84, price: 28 },
+                { id: 'm27', name: 'Vitinha', rating: 84, price: 25 },
+                { id: 'm28', name: 'Douglas Luiz', rating: 83, price: 25 }
+            ],
+            ATK: [
+                { id: 'a1', name: 'Erling Haaland', rating: 91, price: 45 },
+                { id: 'a2', name: 'Kylian Mbappé', rating: 91, price: 45 },
+                { id: 'a3', name: 'Mohamed Salah', rating: 90, price: 45 },
+                { id: 'a4', name: 'Vinícius Júnior', rating: 90, price: 45 },
+                { id: 'a5', name: 'Harry Kane', rating: 90, price: 45 },
+                { id: 'a6', name: 'Bukayo Saka', rating: 88, price: 42 },
+                { id: 'a7', name: 'Phil Foden', rating: 88, price: 40 },
+                { id: 'a8', name: 'Heung-min Son', rating: 88, price: 35 },
+                { id: 'a9', name: 'Antoine Griezmann', rating: 88, price: 35 },
+                { id: 'a10', name: 'Robert Lewandowski', rating: 88, price: 30 },
+                { id: 'a11', name: 'Lionel Messi', rating: 88, price: 30 },
+                { id: 'a12', name: 'Cristiano Ronaldo', rating: 86, price: 25 },
+                { id: 'a13', name: 'Neymar Jr', rating: 86, price: 30 },
+                { id: 'a14', name: 'Luis Suárez', rating: 84, price: 15 },
+                { id: 'a15', name: 'Lautaro Martínez', rating: 88, price: 40 },
+                { id: 'a16', name: 'Victor Osimhen', rating: 87, price: 40 },
+                { id: 'a17', name: 'Rafael Leão', rating: 86, price: 38 },
+                { id: 'a18', name: 'Khvicha Kvaratskhelia', rating: 86, price: 35 },
+                { id: 'a19', name: 'Gabriel Martinelli', rating: 85, price: 30 },
+                { id: 'a20', name: 'Alexander Isak', rating: 84, price: 28 },
+                { id: 'a21', name: 'Ollie Watkins', rating: 84, price: 25 },
+                { id: 'a22', name: 'Cole Palmer', rating: 84, price: 35 },
+                { id: 'a23', name: 'Julián Álvarez', rating: 84, price: 32 },
+                { id: 'a24', name: 'Darwin Núñez', rating: 83, price: 28 },
+                { id: 'a25', name: 'Diogo Jota', rating: 85, price: 28 },
+                { id: 'a26', name: 'Luis Díaz', rating: 84, price: 28 },
+                { id: 'a27', name: 'Raphinha', rating: 84, price: 28 },
+                { id: 'a28', name: 'Lamine Yamal', rating: 83, price: 35 },
+                { id: 'a29', name: 'Ousmane Dembélé', rating: 85, price: 30 },
+                { id: 'a30', name: 'Kingsley Coman', rating: 85, price: 28 },
+                { id: 'a31', name: 'Leroy Sané', rating: 85, price: 30 }
+            ]
+        };
+
+        // --- GAME STATE ---
+        const gameState = {
+            numPlayers: 0,
+            users: [], // { id, name, balance, team: {GK, DEF, MID, ATK}, points, bankrupt }
+            zones: ['GK', 'DEF', 'MID', 'ATK'],
+            currentZoneIndex: 0,
+            draftPool: { GK: [], DEF: [], MID: [], ATK: [] },
+            currentPlayer: null,
+            timerInterval: null,
+            timeLeft: 30
+        };
+
+        // --- HELPER: SHUFFLE ---
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex > 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // --- NAVIGATION ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- PHASE 1 & 2: SETUP ---
+        function goToNameInput() {
+            let count = parseInt(document.getElementById('player-count').value);
+            if (count < 2) count = 2;
+            if (count > 10) count = 10;
+            gameState.numPlayers = count;
+
+            const container = document.getElementById('names-container');
+            container.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                container.innerHTML += `
+                    <div class="form-group">
+                        <label>Manager ${i + 1} Name</label>
+                        <input type="text" class="manager-name-input" placeholder="Enter name..." required>
+                    </div>
+                `;
+            }
+            showScreen('screen-names');
+        }
+
+        function initializeGame() {
+            const inputs = document.querySelectorAll('.manager-name-input');
+            gameState.users = [];
+            
+            inputs.forEach((input, index) => {
+                const name = input.value.trim() || `Manager ${index + 1}`;
+                gameState.users.push({
+                    id: `u${index}`,
+                    name: name,
+                    balance: 150,
+                    team: { GK: null, DEF: null, MID: null, ATK: null },
+                    points: 0,
+                    bankrupt: false
+                });
+            });
+
+            // Select Random Draft Pool (x+1 per zone)
+            const countRequired = gameState.numPlayers + 1;
+            gameState.zones.forEach(zone => {
+                let shuffledPlayers = shuffle([...playerDB[zone]]);
+                // Slice required amount and add auctioned flag
+                gameState.draftPool[zone] = shuffledPlayers.slice(0, countRequired).map(p => ({...p, auctioned: false}));
+            });
+
+            openZoneSelection();
+        }
+
+        // --- PHASE 3: ZONE SELECTION BOARD ---
+        function openZoneSelection() {
+            if (gameState.currentZoneIndex >= gameState.zones.length) {
+                calculateFinalScores();
+                return;
+            }
+
+            const zone = gameState.zones[gameState.currentZoneIndex];
+            
+            // Check if everyone has a player for this zone, or if no players are left
+            const usersNeedingPlayer = gameState.users.filter(u => !u.team[zone]).length;
+            const availablePlayers = gameState.draftPool[zone].filter(p => !p.auctioned).length;
+
+            if (usersNeedingPlayer === 0 || availablePlayers === 0) {
+                showBalances();
+                return;
+            }
+
+            // Setup UI
+            const zoneTitles = { GK: 'Goalkeepers', DEF: 'Defenders', MID: 'Midfielders', ATK: 'Attackers' };
+            document.getElementById('current-zone-name').textContent = zoneTitles[zone];
+            document.getElementById('buyers-remaining').textContent = `Buyers Remaining: ${usersNeedingPlayer}`;
+            
+            const gridEl = document.getElementById('player-grid');
+            gridEl.innerHTML = gameState.draftPool[zone].map(p => {
+                if(p.auctioned) return ''; // Hide already auctioned players
+                // Removed OVR rating to keep it hidden
+                return `
+                <div class="player-select-card" onclick="startAuctionForPlayer('${p.id}')">
+                    <h3>${p.name}</h3>
+                    <div class="stats">
+                        <span style="color: var(--success); font-weight: bold; font-size: 1.1em;">Base: €${p.price}M</span>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            showScreen('screen-zone-selection');
+        }
+
+        // --- PHASE 4: THE AUCTION ---
+        function startAuctionForPlayer(playerId) {
+            const zone = gameState.zones[gameState.currentZoneIndex];
+            gameState.currentPlayer = gameState.draftPool[zone].find(p => p.id === playerId);
+            const p = gameState.currentPlayer;
+
+            // Update UI
+            document.getElementById('auction-player-name').textContent = p.name;
+            document.getElementById('auction-player-price').textContent = p.price;
+
+            // Populate Dropdown (Only users who haven't bought in this zone)
+            const selectEl = document.getElementById('buyer-select');
+            selectEl.innerHTML = '<option value="">-- Select Buyer --</option>';
+            
+            gameState.users.forEach(u => {
+                if (!u.team[zone]) {
+                    selectEl.innerHTML += `<option value="${u.id}">${u.name} (Bal: €${u.balance}M)</option>`;
+                }
+            });
+
+            showScreen('screen-auction');
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+            gameState.timeLeft = 30;
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = gameState.timeLeft;
+            timerEl.classList.remove('timer-danger');
+
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeLeft--;
+                timerEl.textContent = gameState.timeLeft;
+                
+                if(gameState.timeLeft <= 5) {
+                    timerEl.classList.add('timer-danger');
+                }
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    skipPlayer(); // Time out implies player went unsold
+                }
+            }, 1000);
+        }
+
+        function processSale() {
+            const buyerId = document.getElementById('buyer-select').value;
+            const price = parseInt(document.getElementById('purchase-price').value);
+
+            if (!buyerId) {
+                alert("Please select a buyer.");
+                return;
+            }
+            if (isNaN(price) || price < 1) {
+                alert("Please enter a valid price.");
+                return;
+            }
+
+            const buyer = gameState.users.find(u => u.id === buyerId);
+            const zone = gameState.zones[gameState.currentZoneIndex];
+
+            // Complete Transaction
+            buyer.balance -= price;
+            buyer.team[zone] = {
+                ...gameState.currentPlayer,
+                paid: price
+            };
+
+            // Mark player as auctioned
+            gameState.currentPlayer.auctioned = true;
+            clearInterval(gameState.timerInterval);
+            
+            // Return to board
+            openZoneSelection();
+        }
+
+        function skipPlayer() {
+            clearInterval(gameState.timerInterval);
+            // Mark as auctioned so they disappear, acting as a skipped/unsold player
+            gameState.currentPlayer.auctioned = true; 
+            openZoneSelection();
+        }
+
+        // --- PHASE 5: BALANCES ---
+        function showBalances() {
+            const listEl = document.getElementById('balance-list');
+            listEl.innerHTML = gameState.users.map(u => {
+                const balClass = u.balance < 0 ? 'balance-negative' : '';
+                return `
+                <li>
+                    <span>${u.name}</span>
+                    <span class="balance-badge ${balClass}">€${u.balance}M</span>
+                </li>
+                `;
+            }).join('');
+
+            const isLastZone = (gameState.currentZoneIndex === gameState.zones.length - 1);
+            const btn = document.getElementById('next-phase-btn');
+            btn.textContent = isLastZone ? 'Calculate Final Standings' : 'Next Position Zone';
+
+            showScreen('screen-balances');
+        }
+
+        function nextPhase() {
+            gameState.currentZoneIndex++;
+            openZoneSelection();
+        }
+
+        // --- FINAL SCORING ---
+        function calculateFinalScores() {
+            // 1. Rank Players per Zone and Assign Points
+            const pointDistribution = [5, 4, 2, 1]; // 1st, 2nd, 3rd, 4th
+
+            gameState.zones.forEach(zone => {
+                // Get all users who actually drafted a player in this zone
+                let draftedList = gameState.users
+                    .filter(u => u.team[zone])
+                    .map(u => ({ userId: u.id, rating: u.team[zone].rating }));
+
+                // Sort descending by rating
+                draftedList.sort((a, b) => b.rating - a.rating);
+
+                // Distribute points based on rank
+                draftedList.forEach((draftItem, index) => {
+                    if (index < pointDistribution.length) {
+                        const user = gameState.users.find(u => u.id === draftItem.userId);
+                        user.points += pointDistribution[index];
+                    }
+                });
+            });
+
+            // 2. Apply Over-budget Penalties
+            gameState.users.forEach(u => {
+                let overage = 150 - u.balance - 150; // Equivalently: -u.balance
+
+                if (overage >= 100) {
+                    u.points = 0;
+                    u.bankrupt = true;
+                } else if (overage > 40 && overage <= 60) {
+                    u.points -= 3;
+                } else if (overage > 0 && overage <= 40) {
+                    u.points -= 2;
+                }
+            });
+
+            // 3. Sort Leaderboard
+            gameState.users.sort((a, b) => b.points - a.points);
+
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const tbody = document.querySelector('#leaderboard-table tbody');
+            tbody.innerHTML = gameState.users.map(u => {
+                const teamStr = gameState.zones.map(z => {
+                    const p = u.team[z];
+                    return p ? `<strong>${z}:</strong> ${p.name} (${p.rating})` : `<strong>${z}:</strong> None`;
+                }).join('<br>');
+
+                const overage = u.balance < 0 ? Math.abs(u.balance) : 0;
+                let overageText = overage > 0 ? `<span style="color:var(--danger)">+${overage}M</span>` : `<span style="color:var(--success)">Under Budget</span>`;
+                
+                let pointsStr = u.bankrupt ? `0 🤣` : u.points;
+
+                return `
+                <tr>
+                    <td><strong>${u.name}</strong></td>
+                    <td style="font-size: var(--text-sm); line-height: 1.6;">${teamStr}</td>
+                    <td>${overageText}</td>
+                    <td style="font-size: var(--text-xl);"><strong>${pointsStr}</strong></td>
+                </tr>
+                `;
+            }).join('');
+
+            showScreen('screen-leaderboard');
+        }
+
+    </script>
+</body>
+</html>
